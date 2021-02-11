@@ -32,6 +32,8 @@
     ]
   },
   "dependencies": {
+    "axios": "^0.21.1",
+    "parameter-validator": "^1.0.5",
     "qs": "^6.9.6"
   }
 }
