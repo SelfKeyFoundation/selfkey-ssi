@@ -17,3 +17,8 @@ release
 **/dist/
 
 .history
+
+*.sqlite
+
+tmp/
+.env
