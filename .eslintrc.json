@@ -1,7 +1,7 @@
 {
   "extends": ["standard", "prettier", "prettier/standard"],
-  "plugins": ["prettier", "standard", "jest"],
-  "parser": "babel-eslint",
+  "plugins": ["@babel", "prettier", "standard", "jest"],
+  "parser": "@babel/eslint-parser",
   "env": {
     "es6": true,
     "node": true,

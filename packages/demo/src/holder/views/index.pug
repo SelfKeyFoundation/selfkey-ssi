@@ -1,0 +1,13 @@
+extends layout.pug
+
+block content
+    h2 Holder Wallet
+
+    h4 DID
+    p #{identity.did}
+
+    h4 DID document
+    a(href="/.well-known/did.json") /.well-known/did.json
+
+    h4 Credentials
+    a(href="/credentials") List

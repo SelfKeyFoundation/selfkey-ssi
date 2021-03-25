@@ -8,6 +8,7 @@
     "rootDir": "./src",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "typeRoots": ["@types", "node_modules/@types", "../../node_modules/@types"]
   }
 }

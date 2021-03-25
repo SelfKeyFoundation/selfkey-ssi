@@ -4,19 +4,21 @@ import express from 'express';
 import { getAgentRouters } from './agent';
 import { createDBConnection, closeDBConnection } from './db-connection';
 import { getOrCreateIdentifier } from './web-did';
-import { getServices } from './services';
 
 async function createApp({ dbConnection }: any) {
     const app = express();
     app.set('view engine', 'pug');
     app.set('views', path.join(__dirname, 'views'));
     const agentRouters = getAgentRouters(dbConnection, '/agent');
-
-    app.use('/.well-known/did.json', async (req, res, next) => {
+    app.use(async (req, res, next) => {
         try {
-            await getOrCreateIdentifier(await agentRouters.getAgentForRequest(req), req.hostname);
+            req.agent = await agentRouters.getAgentForRequest(req);
+            req.identity = await getOrCreateIdentifier(
+                await agentRouters.getAgentForRequest(req),
+                req.hostname
+            );
         } catch (error) {
-            console.error(error);
+            next(error);
         }
         next();
     });
@@ -24,16 +26,25 @@ async function createApp({ dbConnection }: any) {
     app.use('/open-api.json', agentRouters.apiSchemaRouter);
     app.use(agentRouters.didDocRouter);
 
-    app.get('/.well-known/services.json', async (req, res, next) => {
-        const identity = await getOrCreateIdentifier(
-            await agentRouters.getAgentForRequest(req),
-            req.hostname
-        );
-        res.json(await getServices(identity));
+    app.get('/credentials', async (req, res, next) => {
+        const { identity, agent } = req;
+
+        if (!identity || !agent) return next(new Error('No agent'));
+
+        const credentials = await agent.dataStoreORMGetVerifiableCredentials({
+            where: [
+                {
+                    column: 'subject',
+                    value: [identity.did]
+                }
+            ]
+        });
+
+        res.render('credentials-list', { credentials });
     });
 
     app.get('/', (req, res) => {
-        res.render('index');
+        res.render('index', { identity: req.identity });
     });
 
     return app;

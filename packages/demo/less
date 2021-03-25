@@ -1,0 +1,7 @@
+Your account may not run more than 2 tunnels over a single ngrok client session.
+The tunnels already running on this session are:
+[]
+
+
+ERR_NGROK_324
+
