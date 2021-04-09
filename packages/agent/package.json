@@ -1,0 +1,46 @@
+{
+  "name": "@selfkey/agent",
+  "version": "0.0.1",
+  "description": "Node js lib for selfkey ssi agent",
+  "author": "Maxim Kovalov <max.kovalov@gmail.com>",
+  "homepage": "https://github.com/SelfKeyFoundation/selfkey-ssi#readme",
+  "license": "MIT",
+  "main": "lib/agent.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SelfKeyFoundation/selfkey-ssi.git"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf ./dist",
+    "compile": "tsc -p tsconfig.build.json"
+  },
+  "bugs": {
+    "url": "https://github.com/SelfKeyFoundation/selfkey-ssi/issues"
+  },
+  "dependencies": {
+    "@veramo/core": "^1.1.1-next.26",
+    "@veramo/credential-w3c": "^1.1.1-next.26",
+    "@veramo/data-store": "^1.1.1-next.26",
+    "@veramo/did-comm": "^1.1.1-next.26",
+    "@veramo/did-manager": "^1.1.1-next.26",
+    "@veramo/did-provider-ethr": "^1.1.1-next.26",
+    "@veramo/did-provider-web": "^1.1.1-next.26",
+    "@veramo/did-resolver": "^1.1.1-next.26",
+    "@veramo/key-manager": "^1.1.1-next.26",
+    "@veramo/kms-local": "^1.1.1-next.26",
+    "@veramo/message-handler": "^1.1.1-next.26",
+    "@veramo/remote-server": "^1.1.1-next.26",
+    "@veramo/selective-disclosure": "^1.1.1-next.26",
+    "did-jwt-vc": "^2.0.2",
+    "did-resolver": "^3.1.0",
+    "ethr-did-resolver": "4.0.1",
+    "web-did-resolver": "2.0.4"
+  }
+}

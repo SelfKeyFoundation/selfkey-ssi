@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+
+  "compilerOptions": {
+    "preserveConstEnums": true,
+    "strict": true,
+    "target": "es6",
+    "rootDir": "./src",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "typeRoots": ["@types", "node_modules/@types", "../../node_modules/@types"]
+  }
+}
