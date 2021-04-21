@@ -1,6 +1,6 @@
 {
   "name": "@selfkey/agent",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Node js lib for selfkey ssi agent",
   "author": "Maxim Kovalov <max.kovalov@gmail.com>",
   "homepage": "https://github.com/SelfKeyFoundation/selfkey-ssi#readme",
@@ -8,6 +8,9 @@
   "main": "lib/agent.js",
   "directories": {
     "lib": "lib"
+  },
+  "bin": {
+    "sagent-gen-pk": "./bin/generate-keystore-key"
   },
   "files": [
     "lib"

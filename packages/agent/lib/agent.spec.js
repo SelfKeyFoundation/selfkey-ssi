@@ -111,6 +111,25 @@ describe('SelfkeyAgent', () => {
                     expect(did).toEqual(did2);
                 }));
         });
+        describe('generateDIDDoc', () => {
+            it('did:web', () =>
+                __awaiter(void 0, void 0, void 0, function* () {
+                    agent = new agent_1.default({
+                        dbConnection,
+                        kmsKey,
+                        didProvider: 'did:web',
+                        agentName: 'example.com'
+                    });
+                    const did = yield agent.ensureAgentDID();
+                    const doc = yield agent.generateDIDDoc(did);
+                    expect(doc).toEqual(
+                        expect.objectContaining({
+                            '@context': 'https://w3id.org/did/v1',
+                            id: 'did:web:example.com'
+                        })
+                    );
+                }));
+        });
         // TODO: mock to avoid network requests
         describe('issueCredential', () => {
             it('should issue a credential', () =>

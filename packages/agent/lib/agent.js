@@ -157,6 +157,64 @@ class SelfkeyAgent {
             return identifier.did;
         });
     }
+    getAgentDIDDocument(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const did = yield this.ensureAgentDID(options);
+            const doc = yield this.resolveDIDDoc(did);
+            return doc;
+        });
+    }
+    resolveDIDDoc(didUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const doc = yield this.agent.resolveDid({ didUrl });
+            return doc.didDocument;
+        });
+    }
+    generateDIDDoc(did) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const identifiers = yield this.agent.dataStoreORMGetIdentifiers({
+                where: [
+                    {
+                        column: 'did',
+                        value: [did]
+                    }
+                ]
+            });
+            if (!identifiers.length) {
+                return null;
+            }
+            const identifier = identifiers[0];
+            const didDoc = {
+                '@context': 'https://w3id.org/did/v1',
+                id: identifier.did,
+                publicKey:
+                    (_a = identifier.keys) === null || _a === void 0
+                        ? void 0
+                        : _a.map(key => ({
+                              id: identifier.did + '#' + key.kid,
+                              type:
+                                  key.type === 'Secp256k1'
+                                      ? 'Secp256k1VerificationKey2018'
+                                      : 'Ed25519VerificationKey2018',
+                              controller: identifier.did,
+                              publicKeyHex: key.publicKeyHex
+                          })),
+                authentication:
+                    (_b = identifier.keys) === null || _b === void 0
+                        ? void 0
+                        : _b.map(key => ({
+                              type:
+                                  key.type === 'Secp256k1'
+                                      ? 'Secp256k1SignatureAuthentication2018'
+                                      : 'Ed25519SignatureAuthentication2018',
+                              publicKey: identifier.did + '#' + key.kid
+                          })),
+                service: identifier.services
+            };
+            return didDoc;
+        });
+    }
     issueCredential(credential, options = { save: false, proofFormat: 'JWT' }) {
         return __awaiter(this, void 0, void 0, function* () {
             const did = yield this.ensureAgentDID();

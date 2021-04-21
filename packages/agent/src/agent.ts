@@ -199,6 +199,59 @@ export default class SelfkeyAgent {
         return identifier.did;
     }
 
+    async getAgentDIDDocument(options?: object) {
+        const did = await this.ensureAgentDID(options);
+        const doc = await this.resolveDIDDoc(did);
+
+        return doc;
+    }
+
+    async resolveDIDDoc(didUrl: string) {
+        const doc = await this.agent.resolveDid({ didUrl });
+        return doc.didDocument;
+    }
+
+    async generateDIDDoc(did: string) {
+        const identifiers = await this.agent.dataStoreORMGetIdentifiers({
+            where: [
+                {
+                    column: 'did',
+                    value: [did]
+                }
+            ]
+        });
+
+        if (!identifiers.length) {
+            return null;
+        }
+
+        const identifier = identifiers[0];
+
+        const didDoc = {
+            '@context': 'https://w3id.org/did/v1',
+            id: identifier.did,
+            publicKey: identifier.keys?.map(key => ({
+                id: identifier.did + '#' + key.kid,
+                type:
+                    key.type === 'Secp256k1'
+                        ? 'Secp256k1VerificationKey2018'
+                        : 'Ed25519VerificationKey2018',
+                controller: identifier.did,
+                publicKeyHex: key.publicKeyHex
+            })),
+            authentication: identifier.keys?.map(key => ({
+                type:
+                    key.type === 'Secp256k1'
+                        ? 'Secp256k1SignatureAuthentication2018'
+                        : 'Ed25519SignatureAuthentication2018',
+                publicKey: identifier.did + '#' + key.kid
+            })),
+            service: identifier.services
+        };
+
+        return didDoc;
+    }
+
     async issueCredential(
         credential: IUnsignedCredential,
         options: {
