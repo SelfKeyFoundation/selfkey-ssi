@@ -6,7 +6,9 @@
     "paths": {
       "@selfkey/did": ["did/src"],
       "@selfkey/demo": ["demo/src"],
+      "@selfkey/agent": ["agent/src"],
       "@selfkey/*": ["*/src"]
-    }
+    },
+    "typeRoots": ["packages/demo/@types", "packages/*/node_modules/@types", "node_modules/@types"]
   }
 }

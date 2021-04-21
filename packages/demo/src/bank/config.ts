@@ -9,7 +9,7 @@ const config = {
         projectId: process.env.BANK_INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID
     },
     kms: {
-        secretBoxKey: process.env.SECRET_BOX_KEY || process.env.BANK_SECRET_BOX_KEY
+        secretBoxKey: process.env.BANK_SECRET_BOX_KEY || process.env.SECRET_BOX_KEY
     },
     db: {
         dbName: path.resolve(__dirname, '../../tmp', 'bank.sqlite')

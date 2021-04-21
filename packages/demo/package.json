@@ -20,6 +20,9 @@
   },
   "scripts": {
     "bank:start": "nodemon --watch 'src/**' --ext 'ts,json' --ignore 'src/**/*.spec.ts' --exec 'ts-node src/bank/server.ts'",
+    "issuer:start": "nodemon --watch 'src/**' --ext 'ts,json' --ignore 'src/**/*.spec.ts' --exec 'ts-node src/issuer/server.ts'",
+    "holder:start": "nodemon --watch 'src/**' --ext 'ts,json' --ignore 'src/**/*.spec.ts' --exec 'ts-node src/holder/server.ts'",
+    "ngrok:start": "ngrok start --all",
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf ./dist",
     "compile": "tsc -p tsconfig.build.json"

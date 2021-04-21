@@ -1,8 +1,8 @@
 module.exports = {
     testPathIgnorePatterns: ['/node_modules/'],
-    testMatch: ['**/src/**/*.spec.js'],
+    testMatch: ['**/src/**/*.spec.[jt]s?(x)'],
     verbose: true,
-    testEnvironment: 'jsdom',
+    testEnvironment: 'node',
     testURL: 'http://localhost/',
     transform: {
         '\\.[jt]sx?$': 'babel-jest'

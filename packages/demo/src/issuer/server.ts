@@ -4,7 +4,7 @@ import express from 'express';
 import { getAgentRouters } from './agent';
 import { createDBConnection, closeDBConnection } from './db-connection';
 import { getOrCreateIdentifier } from './web-did';
-import { getServices } from './services';
+import { getCredentialManifest } from './issuer';
 
 async function createApp({ dbConnection }: any) {
     const app = express();
@@ -24,12 +24,12 @@ async function createApp({ dbConnection }: any) {
     app.use('/open-api.json', agentRouters.apiSchemaRouter);
     app.use(agentRouters.didDocRouter);
 
-    app.get('/.well-known/services.json', async (req, res, next) => {
+    app.get('/.well-known/issuer.json', async (req, res, next) => {
         const identity = await getOrCreateIdentifier(
             await agentRouters.getAgentForRequest(req),
             req.hostname
         );
-        res.json(await getServices(identity));
+        res.json(await getCredentialManifest(identity));
     });
 
     app.get('/', (req, res) => {
