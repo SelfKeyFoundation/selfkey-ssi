@@ -7,13 +7,15 @@
   "license": "MIT",
   "main": "lib/agent.js",
   "directories": {
-    "lib": "lib"
+    "lib": "lib",
+    "bin": "bin"
   },
   "bin": {
     "sagent-gen-pk": "./bin/generate-keystore-key"
   },
   "files": [
-    "lib"
+    "lib",
+    "bin"
   ],
   "repository": {
     "type": "git",

@@ -1,5 +1,11 @@
 import { Connection } from 'typeorm';
-import { normalizePresentation, verifyCredential, verifyPresentation } from 'did-jwt-vc';
+import {
+    normalizePresentation,
+    VerifiedCredential,
+    VerifiedPresentation,
+    verifyCredential,
+    verifyPresentation
+} from 'did-jwt-vc';
 
 // Core interfaces
 import {
@@ -11,7 +17,8 @@ import {
     IDataStore,
     IMessageHandler,
     VerifiableCredential,
-    VerifiablePresentation
+    VerifiablePresentation,
+    IIdentifier
 } from '@veramo/core';
 
 // Core identity manager plugin
@@ -30,7 +37,7 @@ import { KeyManagementSystem, SecretBox } from '@veramo/kms-local';
 
 // Custom resolvers
 import { DIDResolverPlugin } from '@veramo/did-resolver';
-import { Resolver } from 'did-resolver';
+import { DIDDocument, Resolver } from 'did-resolver';
 import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 import { getResolver as webDidResolver } from 'web-did-resolver';
 import { MessageHandler } from '@veramo/message-handler';
@@ -43,7 +50,15 @@ import {
 } from '@veramo/credential-w3c';
 
 // Storage plugin using TypeOrm
-import { KeyStore, DIDStore, DataStore, DataStoreORM, IDataStoreORM } from '@veramo/data-store';
+import {
+    KeyStore,
+    DIDStore,
+    DataStore,
+    DataStoreORM,
+    IDataStoreORM,
+    UniqueVerifiableCredential
+} from '@veramo/data-store';
+import { VerificationMethod } from 'did-resolver';
 
 export interface ISelfkeyAgentOptions {
     dbConnection: Promise<Connection>;
@@ -185,12 +200,16 @@ export default class SelfkeyAgent {
         });
     }
 
-    static async generateKMSKey() {
+    static async generateKMSKey(): Promise<string> {
         const key = await SecretBox.createSecretKey();
         return key;
     }
 
-    async ensureAgentDID(options?: object) {
+    async importIdentifier(identifier: IIdentifier) {
+        return this.agent.import(identifier);
+    }
+
+    async ensureAgentDID(options?: object): Promise<string> {
         const identifier = await this.agent.didManagerGetOrCreate({
             provider: this.providerName,
             alias: this.agentName,
@@ -201,19 +220,19 @@ export default class SelfkeyAgent {
         return identifier.did;
     }
 
-    async getAgentDIDDocument(options?: object) {
+    async getAgentDIDDocument(options?: object): Promise<DIDDocument | null> {
         const did = await this.ensureAgentDID(options);
         const doc = await this.resolveDIDDoc(did);
 
         return doc;
     }
 
-    async resolveDIDDoc(didUrl: string) {
+    async resolveDIDDoc(didUrl: string): Promise<DIDDocument | null> {
         const doc = await this.agent.resolveDid({ didUrl });
         return doc.didDocument;
     }
 
-    async generateDIDDoc(did: string) {
+    async generateDIDDoc(did: string): Promise<DIDDocument | null> {
         const identifiers = await this.agent.dataStoreORMGetIdentifiers({
             where: [
                 {
@@ -229,25 +248,33 @@ export default class SelfkeyAgent {
 
         const identifier = identifiers[0];
 
-        const didDoc = {
+        const didDoc: DIDDocument = {
             '@context': 'https://w3id.org/did/v1',
-            id: identifier.did,
-            publicKey: identifier.keys?.map(key => ({
-                id: identifier.did + '#' + key.kid,
-                type:
-                    key.type === 'Secp256k1'
-                        ? 'Secp256k1VerificationKey2018'
-                        : 'Ed25519VerificationKey2018',
-                controller: identifier.did,
-                publicKeyHex: key.publicKeyHex
-            })),
-            authentication: identifier.keys?.map(key => ({
-                type:
-                    key.type === 'Secp256k1'
-                        ? 'Secp256k1SignatureAuthentication2018'
-                        : 'Ed25519SignatureAuthentication2018',
-                publicKey: identifier.did + '#' + key.kid
-            })),
+            id: identifier.did!,
+            publicKey: identifier.keys?.map(
+                key =>
+                    ({
+                        id: identifier.did + '#' + key.kid,
+                        type:
+                            key.type === 'Secp256k1'
+                                ? 'Secp256k1VerificationKey2018'
+                                : 'Ed25519VerificationKey2018',
+                        controller: identifier.did,
+                        publicKeyHex: key.publicKeyHex
+                    } as VerificationMethod)
+            ),
+            authentication: identifier.keys?.map(
+                key =>
+                    ({
+                        id: identifier.did + '#' + key.kid,
+                        type:
+                            key.type === 'Secp256k1'
+                                ? 'Secp256k1SignatureAuthentication2018'
+                                : 'Ed25519SignatureAuthentication2018',
+                        publicKey: identifier.did + '#' + key.kid,
+                        controller: identifier.did
+                    } as VerificationMethod)
+            ),
             service: identifier.services
         };
 
@@ -260,7 +287,7 @@ export default class SelfkeyAgent {
             save?: boolean;
             proofFormat?: string;
         } = { save: false, proofFormat: 'JWT' }
-    ) {
+    ): Promise<VerifiableCredential> {
         const did = await this.ensureAgentDID();
 
         if (!credential.issuer) {
@@ -282,7 +309,7 @@ export default class SelfkeyAgent {
         verifierDID: string,
         holderDid?: string,
         options?: { save: boolean }
-    ) {
+    ): Promise<VerifiablePresentation> {
         if (!holderDid) {
             holderDid = await this.ensureAgentDID();
         }
@@ -308,7 +335,10 @@ export default class SelfkeyAgent {
         return presentation;
     }
 
-    async verifyCredential(vc: string | VerifiableCredential, options?: object) {
+    async verifyCredential(
+        vc: string | VerifiableCredential,
+        options?: object
+    ): Promise<VerifiedCredential> {
         if (typeof vc !== 'string') {
             if (!vc.proof || !vc.proof.jwt) {
                 throw new Error('Invalid credential');
@@ -319,7 +349,10 @@ export default class SelfkeyAgent {
         return verifiedVC;
     }
 
-    async verifyPresentation(vp: string | VerifiablePresentation, options?: object) {
+    async verifyPresentation(
+        vp: string | VerifiablePresentation,
+        options?: object
+    ): Promise<VerifiedPresentation> {
         if (typeof vp !== 'string') {
             if (!vp.proof || !vp.proof.jwt) {
                 throw new Error('Invalid presentation');
@@ -334,22 +367,17 @@ export default class SelfkeyAgent {
         return verifiedVP;
     }
 
-    async listCredentials(): Promise<
-        {
-            hash: string;
-            verifiableCredential: object;
-        }[]
-    > {
+    async listCredentials(): Promise<UniqueVerifiableCredential[]> {
         return await this.agent.dataStoreORMGetVerifiableCredentials();
     }
 
-    async listCredentialsForSubjectId(id: string) {
+    async listCredentialsForSubjectId(id: string): Promise<UniqueVerifiableCredential[]> {
         return await this.agent.dataStoreORMGetVerifiableCredentialsByClaims({
             where: [{ column: 'subject', value: [id] }]
         });
     }
 
-    async listCredentialsForIssuerId(id: string | string[]) {
+    async listCredentialsForIssuerId(id: string | string[]): Promise<UniqueVerifiableCredential[]> {
         if (typeof id === 'string') {
             id = [id];
         }
