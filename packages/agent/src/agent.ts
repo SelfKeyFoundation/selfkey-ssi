@@ -44,7 +44,6 @@ import {
 
 // Storage plugin using TypeOrm
 import { KeyStore, DIDStore, DataStore, DataStoreORM, IDataStoreORM } from '@veramo/data-store';
-import { verifier } from '../../../../selfkey.js/src/auth/crypto/secp256k1-2018';
 
 export interface ISelfkeyAgentOptions {
     dbConnection: Promise<Connection>;
