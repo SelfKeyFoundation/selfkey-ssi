@@ -1,6 +1,6 @@
-# `agent`
+# Selfkey Agent
 
-> TODO: description
+A Selfkey SSI agent library. Utilizes heavily on
 
 ## Usage
 

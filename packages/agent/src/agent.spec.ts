@@ -121,7 +121,7 @@ describe('SelfkeyAgent', () => {
             });
         });
 
-        describe('verifiyCredential', () => {
+        describe('issuePresentation', () => {
             const vc = {
                 credentialSubject: {
                     name: 'test',
@@ -139,13 +139,119 @@ describe('SelfkeyAgent', () => {
                         'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJ2YyI6eyJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoidGVzdCJ9LCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJzdWIiOiJkaWQ6ZXRocjoweDRjYzE5MzU2ZjJkMzczMzhiOTgwMmFhOGU4ZmM1OGIwMzczMjk2ZTciLCJuYmYiOjE2MTc3OTUzNjEsImlzcyI6ImRpZDpldGhyOjB4ZjMwNjhiNDMzOGEwOTBjMDc5OWQxNWFkNjk1YmIyMTA1ODY4ZThjZiJ9.TcysKSRwPsPZDFMU1V2_dM_cvUc-ETXSlh1P9ZSxWQZhzEzj94AbF2oREgUgs7B4i99wuefkeHTJD-NaCZm5kg'
                 }
             };
-            it('should verifty credentials', async () => {
+
+            const vp = {
+                verifiableCredential: [
+                    {
+                        credentialSubject: {
+                            name: 'test',
+                            id: 'did:ethr:0x4cc19356f2d37338b9802aa8e8fc58b0373296e7'
+                        },
+                        issuer: {
+                            id: 'did:ethr:0xf3068b4338a090c0799d15ad695bb2105868e8cf'
+                        },
+                        type: ['VerifiableCredential'],
+                        '@context': ['https://www.w3.org/2018/credentials/v1'],
+                        issuanceDate: '2021-04-07T11:36:01.000Z',
+                        proof: {
+                            type: 'JwtProof2020',
+                            jwt:
+                                'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJ2YyI6eyJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoidGVzdCJ9LCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJzdWIiOiJkaWQ6ZXRocjoweDRjYzE5MzU2ZjJkMzczMzhiOTgwMmFhOGU4ZmM1OGIwMzczMjk2ZTciLCJuYmYiOjE2MTc3OTUzNjEsImlzcyI6ImRpZDpldGhyOjB4ZjMwNjhiNDMzOGEwOTBjMDc5OWQxNWFkNjk1YmIyMTA1ODY4ZThjZiJ9.TcysKSRwPsPZDFMU1V2_dM_cvUc-ETXSlh1P9ZSxWQZhzEzj94AbF2oREgUgs7B4i99wuefkeHTJD-NaCZm5kg'
+                        }
+                    }
+                ],
+                holder: 'did:ethr:0x6806e6ff8855cebad749466ed56c2558434912eb',
+                verifier: ['did:web:test.com'],
+                type: ['VerifiablePresentation'],
+                '@context': ['https://www.w3.org/2018/credentials/v1'],
+                issuanceDate: '2021-04-26T13:41:34.000Z',
+                proof: {
+                    type: 'JwtProof2020',
+                    jwt:
+                        'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJ2cCI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVQcmVzZW50YXRpb24iXSwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlsiZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKRlV6STFOa3NpZlEuZXlKMll5STZleUpqY21Wa1pXNTBhV0ZzVTNWaWFtVmpkQ0k2ZXlKdVlXMWxJam9pZEdWemRDSjlMQ0pBWTI5dWRHVjRkQ0k2V3lKb2RIUndjem92TDNkM2R5NTNNeTV2Y21jdk1qQXhPQzlqY21Wa1pXNTBhV0ZzY3k5Mk1TSmRMQ0owZVhCbElqcGJJbFpsY21sbWFXRmliR1ZEY21Wa1pXNTBhV0ZzSWwxOUxDSnpkV0lpT2lKa2FXUTZaWFJvY2pvd2VEUmpZekU1TXpVMlpqSmtNemN6TXpoaU9UZ3dNbUZoT0dVNFptTTFPR0l3TXpjek1qazJaVGNpTENKdVltWWlPakUyTVRjM09UVXpOakVzSW1semN5STZJbVJwWkRwbGRHaHlPakI0WmpNd05qaGlORE16T0dFd09UQmpNRGM1T1dReE5XRmtOamsxWW1JeU1UQTFPRFk0WlRoalppSjkuVGN5c0tTUndQc1BaREZNVTFWMl9kTV9jdlVjLUVUWFNsaDFQOVpTeFdRWmh6RXpqOTRBYkYyb1JFZ1VnczdCNGk5OXd1ZWZrZUhUSkQtTmFDWm01a2ciXX0sIm5iZiI6MTYxOTQ0NDQ5NCwiaXNzIjoiZGlkOmV0aHI6MHg2ODA2ZTZmZjg4NTVjZWJhZDc0OTQ2NmVkNTZjMjU1ODQzNDkxMmViIiwiYXVkIjpbImRpZDp3ZWI6dGVzdC5jb20iXX0.e-cj7easg_xjWRBVxqm44QeWgJ95Hg9nJ9kMWqDT4W1iuubvDW_scy-QINjUaOlFSm_uz47PSQCq1ykO2VbFZg'
+                }
+            };
+
+            it('should issue verifiable presentation', async () => {
+                const verifierDID = 'did:web:test.com';
+                const presentation = await agent.issuePresentation([vc], verifierDID);
+                const did = await agent.ensureAgentDID();
+                expect(presentation).toEqual(
+                    expect.objectContaining({
+                        '@context': ['https://www.w3.org/2018/credentials/v1'],
+                        holder: did,
+                        issuanceDate: expect.any(String),
+                        proof: {
+                            jwt: expect.any(String),
+                            type: 'JwtProof2020'
+                        },
+                        type: ['VerifiablePresentation'],
+                        verifiableCredential: [vc],
+                        verifier: [verifierDID]
+                    })
+                );
+            });
+        });
+
+        describe('verifyCredential', () => {
+            const vc = {
+                credentialSubject: {
+                    name: 'test',
+                    id: 'did:ethr:0x4cc19356f2d37338b9802aa8e8fc58b0373296e7'
+                },
+                issuer: {
+                    id: 'did:ethr:0xf3068b4338a090c0799d15ad695bb2105868e8cf'
+                },
+                type: ['VerifiableCredential'],
+                '@context': ['https://www.w3.org/2018/credentials/v1'],
+                issuanceDate: '2021-04-07T11:36:01.000Z',
+                proof: {
+                    type: 'JwtProof2020',
+                    jwt:
+                        'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJ2YyI6eyJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoidGVzdCJ9LCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJzdWIiOiJkaWQ6ZXRocjoweDRjYzE5MzU2ZjJkMzczMzhiOTgwMmFhOGU4ZmM1OGIwMzczMjk2ZTciLCJuYmYiOjE2MTc3OTUzNjEsImlzcyI6ImRpZDpldGhyOjB4ZjMwNjhiNDMzOGEwOTBjMDc5OWQxNWFkNjk1YmIyMTA1ODY4ZThjZiJ9.TcysKSRwPsPZDFMU1V2_dM_cvUc-ETXSlh1P9ZSxWQZhzEzj94AbF2oREgUgs7B4i99wuefkeHTJD-NaCZm5kg'
+                }
+            };
+
+            // TODO: mock to avoid network calls
+            it('should verify credentials', async () => {
                 const verified = await agent.verifyCredential(vc);
                 expect(verified.signer).toEqual({
-                    id: 'did:ethr:0xf3068b4338a090c0799d15ad695bb2105868e8cf#controller',
+                    id: expect.any(String),
                     type: 'EcdsaSecp256k1RecoveryMethod2020',
-                    controller: 'did:ethr:0xf3068b4338a090c0799d15ad695bb2105868e8cf',
-                    blockchainAccountId: '0xF3068B4338A090C0799d15Ad695bB2105868e8cF@eip155:1'
+                    controller: expect.any(String),
+                    blockchainAccountId: expect.any(String)
+                });
+            });
+        });
+
+        describe('verifyPresentation', () => {
+            const vc = {
+                credentialSubject: {
+                    name: 'test',
+                    id: 'did:ethr:0x4cc19356f2d37338b9802aa8e8fc58b0373296e7'
+                },
+                issuer: {
+                    id: 'did:ethr:0xf3068b4338a090c0799d15ad695bb2105868e8cf'
+                },
+                type: ['VerifiableCredential'],
+                '@context': ['https://www.w3.org/2018/credentials/v1'],
+                issuanceDate: '2021-04-07T11:36:01.000Z',
+                proof: {
+                    type: 'JwtProof2020',
+                    jwt:
+                        'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJ2YyI6eyJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoidGVzdCJ9LCJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIl19LCJzdWIiOiJkaWQ6ZXRocjoweDRjYzE5MzU2ZjJkMzczMzhiOTgwMmFhOGU4ZmM1OGIwMzczMjk2ZTciLCJuYmYiOjE2MTc3OTUzNjEsImlzcyI6ImRpZDpldGhyOjB4ZjMwNjhiNDMzOGEwOTBjMDc5OWQxNWFkNjk1YmIyMTA1ODY4ZThjZiJ9.TcysKSRwPsPZDFMU1V2_dM_cvUc-ETXSlh1P9ZSxWQZhzEzj94AbF2oREgUgs7B4i99wuefkeHTJD-NaCZm5kg'
+                }
+            };
+            // TODO: mock to avoid network calls
+            it('should verify presentation', async () => {
+                const did = await agent.ensureAgentDID();
+                const presentation = await agent.issuePresentation([vc], did);
+                const verified = await agent.verifyPresentation(presentation);
+                expect(verified.signer).toEqual({
+                    id: expect.any(String),
+                    type: expect.any(String),
+                    controller: expect.any(String),
+                    publicKeyHex: expect.any(String)
                 });
             });
         });

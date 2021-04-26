@@ -1,5 +1,5 @@
 import { Connection } from 'typeorm';
-import { verifyCredential } from 'did-jwt-vc';
+import { normalizePresentation, verifyCredential, verifyPresentation } from 'did-jwt-vc';
 
 // Core interfaces
 import {
@@ -9,7 +9,9 @@ import {
     IResolver,
     IKeyManager,
     IDataStore,
-    IMessageHandler
+    IMessageHandler,
+    VerifiableCredential,
+    VerifiablePresentation
 } from '@veramo/core';
 
 // Core identity manager plugin
@@ -42,6 +44,7 @@ import {
 
 // Storage plugin using TypeOrm
 import { KeyStore, DIDStore, DataStore, DataStoreORM, IDataStoreORM } from '@veramo/data-store';
+import { verifier } from '../../../../selfkey.js/src/auth/crypto/secp256k1-2018';
 
 export interface ISelfkeyAgentOptions {
     dbConnection: Promise<Connection>;
@@ -275,15 +278,61 @@ export default class SelfkeyAgent {
         return vc;
     }
 
-    async verifyCredential(vc: string | IUnsignedCredential, options?: object) {
+    async issuePresentation(
+        credentials: VerifiableCredential[],
+        verifierDID: string,
+        holderDid?: string,
+        options?: { save: boolean }
+    ) {
+        if (!holderDid) {
+            holderDid = await this.ensureAgentDID();
+        }
+
+        let holderIdentity;
+
+        try {
+            holderIdentity = await this.agent.didManagerGet({ did: holderDid });
+        } catch (error) {
+            throw new Error('Holder DID is not defined');
+        }
+
+        const presentation = await this.agent.createVerifiablePresentation({
+            presentation: {
+                holder: holderDid,
+                verifier: [verifierDID],
+                verifiableCredential: credentials
+            },
+            proofFormat: 'jwt',
+            save: options && options.save
+        });
+
+        return presentation;
+    }
+
+    async verifyCredential(vc: string | VerifiableCredential, options?: object) {
         if (typeof vc !== 'string') {
             if (!vc.proof || !vc.proof.jwt) {
                 throw new Error('Invalid credential');
             }
             vc = vc.proof.jwt as string;
         }
-        const veridiedVC = await verifyCredential(vc, this.resolver);
-        return veridiedVC;
+        const verifiedVC = await verifyCredential(vc, this.resolver, options);
+        return verifiedVC;
+    }
+
+    async verifyPresentation(vp: string | VerifiablePresentation, options?: object) {
+        if (typeof vp !== 'string') {
+            if (!vp.proof || !vp.proof.jwt) {
+                throw new Error('Invalid presentation');
+            }
+            vp = vp.proof.jwt as string;
+        }
+        const did = await this.ensureAgentDID();
+        const verifiedVP = await verifyPresentation(vp, this.resolver, {
+            audience: did,
+            ...options
+        });
+        return verifiedVP;
     }
 
     async listCredentials(): Promise<
