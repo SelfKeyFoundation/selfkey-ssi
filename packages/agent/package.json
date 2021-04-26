@@ -1,6 +1,6 @@
 {
   "name": "@selfkey/agent",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Node js lib for selfkey ssi agent",
   "author": "Maxim Kovalov <max.kovalov@gmail.com>",
   "homepage": "https://github.com/SelfKeyFoundation/selfkey-ssi#readme",
