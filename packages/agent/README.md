@@ -2,11 +2,93 @@
 
 A Selfkey SSI agent library. Utilizes heavily the veramo framework and did-jwt-vc library
 
+For storage typeorm is used.
+
 ## Usage
 
 ```sh
 yarn add @selfkey/agent
 ```
+
+### Agent example:
+
+```js
+const Entities = require('@selfkey/agent/lib/entities').default;
+const SelfkeyAgent = require('@selfkey/agent').default;
+const {createConnection} = require('typeorm');
+
+
+async function main(){
+    const infuraId = 'INSERT PROJECT ID';
+
+    const dbConnection = createConnection({
+        type: 'sqlite',
+        database: 'db.sqlite',
+        synchronize: true,
+        logging: ['error', 'info', 'warn'],
+        entities: Entities
+    });
+
+    const kmsKey = await SelfkeyAgent.generateKMSKey();
+
+    const agent = new SelfkeyAgent({
+            dbConnection,
+            infuraId,
+            kmsKey,
+            agentName: 'example.com,
+            didProvider: 'did:web'
+        });
+
+    const did = await agent.ensureAgentDID();
+    // 'did:web:example.com
+
+    const didDoc = await agent.generateDIDDoc(did);
+    /*
+    {
+      "@context": "https://w3id.org/did/v1",
+      "id": "did:web:example.com",
+      "publicKey": [
+        {
+          "id": "did:web:example.com#0409e2da3624c81b9116c9da841b786cef96b7f4af09107d11c16b39fc5607bbf12be877b6fa7e8c570b3fa736e2d98958981403acba77130ce401ef9056bad5ca",
+          "type": "Secp256k1VerificationKey2018",
+          "controller": "did:web:example.com",
+          "publicKeyHex": "0409e2da3624c81b9116c9da841b786cef96b7f4af09107d11c16b39fc5607bbf12be877b6fa7e8c570b3fa736e2d98958981403acba77130ce401ef9056bad5ca"
+        }
+      ],
+      "authentication": [
+        {
+          "id": "did:web:example.com#0409e2da3624c81b9116c9da841b786cef96b7f4af09107d11c16b39fc5607bbf12be877b6fa7e8c570b3fa736e2d98958981403acba77130ce401ef9056bad5ca",
+          "type": "Secp256k1SignatureAuthentication2018",
+          "publicKey": "did:web:example.com#0409e2da3624c81b9116c9da841b786cef96b7f4af09107d11c16b39fc5607bbf12be877b6fa7e8c570b3fa736e2d98958981403acba77130ce401ef9056bad5ca",
+          "controller": "did:web:example.com"
+        }
+      ],
+      "service": []
+    }
+    */
+
+   const credentialSubject = {
+       firstName: 'First',
+       lastName: 'Last',
+       nationality: 'Armenia',
+       id: 'did:ethr:0xsdasda2dsadasdas...'
+   };
+
+   const credential = await agent.issueCredential({credentialSubject});
+
+   const verifiedCredential = await agent.verifyCredential(credential);
+
+   const presentation = await agent.issuePresentation([credential], 'did:web:verifier.com');
+
+   // agent with did 'did:web:verifier.com'
+
+   await agent.verifyPresentation(presentation);
+
+}
+
+```
+
+
 ## Binary
 
 When installing the library, a script executable will be installed as well into `node_modules/.bin`

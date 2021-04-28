@@ -99,7 +99,7 @@ describe('SelfkeyAgent', () => {
 
                 const did = await agent.ensureAgentDID();
                 const doc = await agent.generateDIDDoc(did);
-
+                console.log(JSON.stringify(doc, null, 2));
                 expect(doc).toEqual(
                     expect.objectContaining({
                         '@context': 'https://w3id.org/did/v1',
